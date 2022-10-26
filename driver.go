@@ -58,16 +58,26 @@ type Connector struct {
 
 // NewConnector creates a new connector
 func NewConnector(dsn string) driver.Connector {
-	return &Connector{nil, nil, dsn}
+	return &Connector{
+		Info: make(map[string]string),
+		dsn:  dsn,
+	}
 }
 
 func (c *Connector) Connect(context.Context) (driver.Conn, error) {
 
 	config, err := ParseDSN(c.dsn)
-
 	if err != nil {
 		return nil, fmt.Errorf("unable to open connection: %w", err)
 	}
+
+	if config.avaticaUser != "" {
+		c.Info["user"] = config.avaticaUser
+	}
+	if config.avaticaPassword != "" {
+		c.Info["password"] = config.avaticaPassword
+	}
+
 	connectionId, err := uuid.GenerateUUID()
 	if err != nil {
 		return nil, fmt.Errorf("error generating connection id: %w", err)
